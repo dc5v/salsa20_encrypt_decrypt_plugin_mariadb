@@ -44,7 +44,7 @@ make
 
 1. Copy the built `salsa20_encrypt_decrypt_plugin.so` file to the MariaDB plugin directory.
    
-   sudo cp ./salsa20_encrypt_decrypt_plugin.so /path/to/your/mysql/plugin/directory/
+   sudo cp ./salsa20_encrypt_decrypt_plugin.so REPLACE-YOUR-SHARE-LIBRARY-PATH/mysql/plugin/directory/
 
 2. Map the library with the function creation query.
    
