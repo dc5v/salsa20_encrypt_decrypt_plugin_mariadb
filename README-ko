@@ -1,0 +1,80 @@
+salsa20_encrypt_decrypt_plugin
+==============================
+
+이 플러그인은 mariadb 에서 [Salsa20](https://en.wikipedia.org/wiki/Salsa20) 암호화, 복호화를 위해 만들어졌습니다.
+
+실제 프로덕션 환경에서 사용하기 전 반드시 적절한 테스트 후 환경에 맞추어 수정해 사용하세요.
+
+
+Disclaimer
+----------
+
+이 코드는 사용자의 환경에 따라 데이터 손실과 같은 위험을 초래할 수 있습니다.
+
+작성자는 이 코드의 정확성, 완전성, 신뢰성 또는 특정 목적에 대한 적합성에 대해 명시적 또는 묵시적인 어떠한 보증도 없으며 면책입니다. 
+
+사용자는 이 코드가 자신의 애플리케이션에 적합하고 안전한지 확인할 책임이 전적으로 본인에게 있음을 인정합니다.
+
+그렇지 않을 경우 이 코드를 사용하지 마십시오.
+
+
+Required libraries
+------------------
+
+빌드를 위해 libsodium, libmysqlclient 라이브러리가 필요합니다.
+
+- Ubuntu/Debian
+  
+  sudo apt-get update
+  sudo apt-get install libmysqlclient-dev libsodium-dev
+
+- CentOS/RHEL
+  
+  sudo yum install mysql-devel libsodium-devel
+
+
+How to build
+------------
+
+make
+
+
+How to install
+--------------
+
+1. 빌드된 `salsa20_encrypt_decrypt_plugin.so` 파일을 mariadb 플러그인 디렉토리에 복사합니다.
+   
+   cp ./salsa20_encrypt_decrypt_plugin.so REPLACE-YOUR-SHARE-LIBRARY-PATH/mysql/plugin/
+
+2. 함수 생성 쿼리로 라이브러리를 매핑합니다.
+
+  CREATE FUNCTION SALSA_ENCRYPT RETURNS STRING SONAME 'salsa20_encrypt_decrypt_plugin.so';
+  CREATE FUNCTION SALSA_DECRYPT RETURNS STRING SONAME 'salsa20_encrypt_decrypt_plugin.so';
+
+* Where is the mariadb plugin directory
+  
+  `SHOW VARIABLES LIKE 'plugin_dir';` 쿼리를 실행하면 아래처럼 플러그인 경로가 출력됩니다. 
+ 
+  +---------------+----------------------------------+
+  | Variable_name | Value                            |
+  +---------------+----------------------------------+
+  | plugin_dir    | /usr/share/lib64/mysql/plugin/   |
+  +---------------+----------------------------------+
+
+
+How to use
+----------
+
+아래와 같이 사용할 수 있습니다.
+
+-- INSERT
+INSERT INTO tb_messages(message) VALUES( SALSA_ENCRYPT("KEY", "MESSAGE") );
+
+-- SELECT ... WHERE
+SELECT SALSA_DECRYPT("KEY", message) AS "message" FROM tb_messages WHERE SALSA_DECRYPT("KEY", message) LIKE "%something%";
+
+
+License
+-------
+
+Unlicense
