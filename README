@@ -76,4 +76,4 @@ SELECT SALSA_DECRYPT("KEY", message) AS "message" FROM tb_messages WHERE SALSA_D
 License
 -------
 
-이 프로젝트는 Unlicense로 배포됩니다.
+Unlicense
