@@ -103,9 +103,6 @@ How to use
 
 You can use it as follows:
 
-Key must be 
-
-```
 # 1. Build.
 $ make clean; make
   rm -f *.o salsa20_encrypt_decrypt_plugin.so
@@ -168,7 +165,17 @@ MariaDB > DROP DATABASE IF EXISTS db_salsa_salsa_test;
 MariaDB > DROP TABLE IF EXISTS tb_mixed_vars;
 MariaDB > quit
 
-```
+
+TODO
+----
+
+[ ] Casting convenience
+[ ] Ultra-miniature code
+[ ] Update Makefile - `make install'  
+[ ] Automation test shellscript
+[ ] Stress test with big-large data rows
+
+
 
 License
 -------

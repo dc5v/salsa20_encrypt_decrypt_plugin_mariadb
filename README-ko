@@ -102,7 +102,6 @@ How to use
 
 아래와 같이 따라해볼 수 있숩니다.
 
-```
 # 1. 빌드.
 $ make clean; make
   rm -f *.o salsa20_encrypt_decrypt_plugin.so
@@ -165,7 +164,14 @@ MariaDB > DROP DATABASE IF EXISTS db_salsa_salsa_test;
 MariaDB > DROP TABLE IF EXISTS tb_mixed_vars;
 MariaDB > quit
 
-```
+
+TODO
+----
+
+[ ] 캐스팅 편의성 추가. 아직 mariadb소스를 까보지 않아서 두렵습니다
+[ ] 코드 초미니 경량화
+[ ] make install 추가
+[ ] test shell 작성
 
 License
 -------
