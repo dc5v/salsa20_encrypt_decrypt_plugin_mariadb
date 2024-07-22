@@ -1,6 +1,39 @@
 salsa20_encrypt_decrypt_plugin
 ==============================
 
+```
+Let's dance SALSA!
+                                     @@          
+                                    @@@@          
+             @@@@                   #@@@          
+            :@@@@:                  +@@#          
+           @@@@@@#                   @@.          
+           @@@@@%=       #%*=    .@@@@@@@@%       
+         #*@@@@@.       @--@@    @@@@@@@@@@+      
+         -@@%@@@@%*@@@#     .@@@@@.@@@@@@*%@@     
+   =    #@@.=@@@@=   .       %@@@  @@@@@@= @@.    
+    #  %@*   @@@@             @@   @@@@@@-@@#     
+   +@@@-     *@@@                  @@@@@@@@*      
+             .@@@                  @@@@@@@:       
+            -@@@@@@@@              @@@@@@@        
+            @@@@@@@@@=             @@@@@@@:       
+           +@@@@@@@+@.             .@@@@@@*       
+           @@@#@@@@                 @@@@@@*       
+           @@@  -@#                 %@@@@@*       
+           @@:  -@:                 .@@@@@+       
+          =@@   @@                 .@@@@@         
+          *@@  .@%                .@@@@@@:        
+          %@#  =@:                *@@@+@@@        
+          @@   @-                 -@@+ @@@@       
+          @#   @                   -@* -@@@.      
+         .@   %-                    %@. @@@=      
+         -@  :@                      #- %@#       
+         #@. *@                         :@@       
+         @:- @.                         -@#       
+        =@                              -@:       
+                                         :        
+```
+
 This plugin is created for encryption and decryption using [Salsa20](https://en.wikipedia.org/wiki/Salsa20) in MariaDB.
 
 Please make sure to properly test and adapt it to your environment before using it in a production setting.
@@ -62,19 +95,84 @@ make
   | plugin_dir    | /usr/share/lib64/mysql/plugin/   |
   +---------------+----------------------------------+
 
+
 How to use
 ----------
 
+* The encryption key must be 256 bits (i.e. 32 ASCII characters, 256/8) long.
+
 You can use it as follows:
 
--- INSERT
-INSERT INTO tb_messages(message) VALUES( SALSA_ENCRYPT("KEY", "MESSAGE") );
+Key must be 
 
--- SELECT ... WHERE
-SELECT SALSA_DECRYPT("KEY", message) AS "message" FROM tb_messages WHERE SALSA_DECRYPT("KEY", message) LIKE "%something%";
+```
+# 1. Build.
+$ make clean; make
+  rm -f *.o salsa20_encrypt_decrypt_plugin.so
+  gcc -fPIC -Wall -I/usr/include/mysql -c salsa20_encrypt_decrypt_plugin.c
+  gcc -shared -o salsa20_encrypt_decrypt_plugin.so salsa20_encrypt_decrypt_plugin.o -lsodium -lmysqlclient
 
+
+# 2. Copy built library.
+$ cp salsa20_encrypt_decrypt_plugin.so [YOUR_LIBRARY_DIR]/mysql/plugin/
+
+
+# 3. Connect mariadb.
+$ mysql -ulocaluser -p
+
+
+# 4. Initialize.
+MariaDB > DROP FUNCTION IF EXISTS SALSA_DECRYPT;
+MariaDB > DROP FUNCTION IF EXISTS SALSA_ENCRYPT;
+MariaDB > CREATE FUNCTION SALSA_DECRYPT RETURNS STRING SONAME 'salsa20_encrypt_decrypt_plugin.so';
+MariaDB > CREATE FUNCTION SALSA_ENCRYPT RETURNS STRING SONAME "salsa20_encrypt_decrypt_plugin.so";
+
+
+# 5. Create test db, table.
+MariaDB > DROP DATABASE IF EXISTS db_salsa_salsa_test;
+MariaDB > CREATE DATABASE db_salsa_salsa_test;
+MariaDB > USE db_salsa_salsa_test;
+
+MariaDB > DROP TABLE IF EXISTS tb_mixed_vars;
+MariaDB > CREATE TABLE tb_mixed_vars (
+              cbin LONGTEXT,
+              cb64 LONGTEXT,
+              chex LONGTEXT,
+              cblb BLOB,
+              cblbd BLOB
+          ) ENGINE=MyISAM;
+
+
+# 6. Insert encrypted text.
+MariaDB > INSERT INTO tb_mixed_vars VALUES(
+          SALSA_ENCRYPT("honolulululululululululululululu", "Just", "binary") ,
+          SALSA_ENCRYPT("honolulululululululululululululu", "getting", "base64"),
+          SALSA_ENCRYPT("honolulululululululululululululu", "older", "hex") ,
+          SALSA_ENCRYPT("honolulululululululululululululu", "and smoking", "blob"),
+          SALSA_ENCRYPT("honolulululululululululululululu", "more...")
+        );
+
+# 7. Select and decrypt text.
+MariaDB > SELECT 
+          SALSA_DECRYPT("honolulululululululululululululu", (cbin AS CHAR), "binary") AS "cbin",
+          SALSA_DECRYPT("honolulululululululululululululu", (cb64 AS CHAR), "base64") AS "cb64",
+          SALSA_DECRYPT("honolulululululululululululululu", (chex AS CHAR), "hex") AS "chex",
+          SALSA_DECRYPT("honolulululululululululululululu", cblb, "blob") AS "cblb",
+          SALSA_DECRYPT("honolulululululululululululululu", cblbd, "blob") AS "cblbd"
+        FROM tb_mixed_vars;
+
+
+# 8. That's all forks. 🤷‍♂️
+
+MariaDB > DROP DATABASE IF EXISTS db_salsa_salsa_test;
+MariaDB > DROP TABLE IF EXISTS tb_mixed_vars;
+MariaDB > quit
+
+```
 
 License
 -------
 
-Unlicense
+Unlicense. 
+
+I love unlicense.

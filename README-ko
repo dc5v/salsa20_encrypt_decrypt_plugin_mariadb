@@ -1,6 +1,39 @@
 salsa20_encrypt_decrypt_plugin
 ==============================
 
+```
+살사춤을 춥시다!
+                                     @@          
+                                    @@@@          
+             @@@@                   #@@@          
+            :@@@@:                  +@@#          
+           @@@@@@#                   @@.          
+           @@@@@%=       #%*=    .@@@@@@@@%       
+         #*@@@@@.       @--@@    @@@@@@@@@@+      
+         -@@%@@@@%*@@@#     .@@@@@.@@@@@@*%@@     
+   =    #@@.=@@@@=   .       %@@@  @@@@@@= @@.    
+    #  %@*   @@@@             @@   @@@@@@-@@#     
+   +@@@-     *@@@                  @@@@@@@@*      
+             .@@@                  @@@@@@@:       
+            -@@@@@@@@              @@@@@@@        
+            @@@@@@@@@=             @@@@@@@:       
+           +@@@@@@@+@.             .@@@@@@*       
+           @@@#@@@@                 @@@@@@*       
+           @@@  -@#                 %@@@@@*       
+           @@:  -@:                 .@@@@@+       
+          =@@   @@                 .@@@@@         
+          *@@  .@%                .@@@@@@:        
+          %@#  =@:                *@@@+@@@        
+          @@   @-                 -@@+ @@@@       
+          @#   @                   -@* -@@@.      
+         .@   %-                    %@. @@@=      
+         -@  :@                      #- %@#       
+         #@. *@                         :@@       
+         @:- @.                         -@#       
+        =@                              -@:       
+                                         :        
+```
+
 이 플러그인은 mariadb 에서 [Salsa20](https://en.wikipedia.org/wiki/Salsa20) 암호화, 복호화를 위해 만들어졌습니다.
 
 실제 프로덕션 환경에서 사용하기 전 반드시 적절한 테스트 후 환경에 맞추어 수정해 사용하세요.
@@ -65,16 +98,78 @@ How to install
 How to use
 ----------
 
-아래와 같이 사용할 수 있습니다.
+* 반드시 암호화키는 256비트의 길이로 지정하세요.(그러니까 32글자의 ASCII 믄자, 256/8)
 
--- INSERT
-INSERT INTO tb_messages(message) VALUES( SALSA_ENCRYPT("KEY", "MESSAGE") );
+아래와 같이 따라해볼 수 있숩니다.
 
--- SELECT ... WHERE
-SELECT SALSA_DECRYPT("KEY", message) AS "message" FROM tb_messages WHERE SALSA_DECRYPT("KEY", message) LIKE "%something%";
+```
+# 1. 빌드.
+$ make clean; make
+  rm -f *.o salsa20_encrypt_decrypt_plugin.so
+  gcc -fPIC -Wall -I/usr/include/mysql -c salsa20_encrypt_decrypt_plugin.c
+  gcc -shared -o salsa20_encrypt_decrypt_plugin.so salsa20_encrypt_decrypt_plugin.o -lsodium -lmysqlclient
 
+
+# 2. 빌드한 라이브러리 복사.
+$ cp salsa20_encrypt_decrypt_plugin.so [YOUR_LIBRARY_DIR]/mysql/plugin/
+
+
+# 3. 마리아DB 접속
+$ mysql -ulocaluser -p
+
+
+# 4. 초기화
+MariaDB > DROP FUNCTION IF EXISTS SALSA_DECRYPT;
+MariaDB > DROP FUNCTION IF EXISTS SALSA_ENCRYPT;
+MariaDB > CREATE FUNCTION SALSA_DECRYPT RETURNS STRING SONAME 'salsa20_encrypt_decrypt_plugin.so';
+MariaDB > CREATE FUNCTION SALSA_ENCRYPT RETURNS STRING SONAME "salsa20_encrypt_decrypt_plugin.so";
+
+
+# 5. 테스트용 DB, Table 생성
+MariaDB > DROP DATABASE IF EXISTS db_salsa_salsa_test;
+MariaDB > CREATE DATABASE db_salsa_salsa_test;
+MariaDB > USE db_salsa_salsa_test;
+
+MariaDB > DROP TABLE IF EXISTS tb_mixed_vars;
+MariaDB > CREATE TABLE tb_mixed_vars (
+              cbin LONGTEXT,
+              cb64 LONGTEXT,
+              chex LONGTEXT,
+              cblb BLOB,
+              cblbd BLOB
+          ) ENGINE=MyISAM;
+
+
+# 6. Insert encrypted text.
+MariaDB > INSERT INTO tb_mixed_vars VALUES(
+          SALSA_ENCRYPT("honolulululululululululululululu", "Just", "binary") ,
+          SALSA_ENCRYPT("honolulululululululululululululu", "getting", "base64"),
+          SALSA_ENCRYPT("honolulululululululululululululu", "older", "hex") ,
+          SALSA_ENCRYPT("honolulululululululululululululu", "and smoking", "blob"),
+          SALSA_ENCRYPT("honolulululululululululululululu", "more...")
+        );
+
+# 7. Select and decrypt text.
+MariaDB > SELECT 
+          SALSA_DECRYPT("honolulululululululululululululu", (cbin AS CHAR), "binary") AS "cbin",
+          SALSA_DECRYPT("honolulululululululululululululu", (cb64 AS CHAR), "base64") AS "cb64",
+          SALSA_DECRYPT("honolulululululululululululululu", (chex AS CHAR), "hex") AS "chex",
+          SALSA_DECRYPT("honolulululululululululululululu", cblb, "blob") AS "cblb",
+          SALSA_DECRYPT("honolulululululululululululululu", cblbd, "blob") AS "cblbd"
+        FROM tb_mixed_vars;
+
+
+# 8. 이게 다예요. 🤷‍♂️
+
+MariaDB > DROP DATABASE IF EXISTS db_salsa_salsa_test;
+MariaDB > DROP TABLE IF EXISTS tb_mixed_vars;
+MariaDB > quit
+
+```
 
 License
 -------
 
-Unlicense
+Unlicense. 
+
+I love unlicense.
