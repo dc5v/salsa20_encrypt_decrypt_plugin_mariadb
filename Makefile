@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -fPIC -Wall
-LIBS = -lsodium
+CFLAGS = -fPIC -Wall -I/usr/include/mysql
+LIBS = -lsodium -lmysqlclient
 TARGET = salsa20_encrypt_decrypt_plugin.so
 
 all: $(TARGET)
